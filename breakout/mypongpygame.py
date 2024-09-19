@@ -51,14 +51,10 @@ scoring_sound_effect = (pygame.mixer.Sound
                         ('assets/258020__kodack__arcade-bleep-sound.wav'))
 
 # player 1
-player_1 = pygame.image.load("assets/player.png")
+player_1 = pygame.image.load("assets/player_teste.png")
 player_1_y = 300
 player_1_move_up = False
 player_1_move_down = False
-
-# player 2 - robot
-player_2 = pygame.image.load("assets/player.png")
-player_2_y = 300
 
 # ball
 ball = pygame.image.load("assets/ball.png")
@@ -78,23 +74,6 @@ score_2 = 0
 game_loop = True
 game_clock = pygame.time.Clock()
 
-#selecting and playing the sountrack
-soundtrack_list =\
-["SOUNDTRACKS/Mega Man 2 - Dr. Wily's Castle - UryaV.mp3",
-"SOUNDTRACKS/DuckTales Music (NES) - The Moon Theme - explod2A03.mp3",
-"SOUNDTRACKS/Masked Dedede 8 Bit Remix - Kirby Super Star Ultra (Konami VRC6) "
-"- Bulby.mp3",
-"SOUNDTRACKS/Castlevania II Music (NES) - Bloody Tears (Day Theme) - "
-"explod2A03.mp3",
- "SOUNDTRACKS/Attack of the Killer Queen - Toby Fox.mp3",
- "SOUNDTRACKS/Thunderstruck (2023) [8 Bit Tribute to AC_DC] - 8 Bit Universe "
- "- 8 Bit Universe.mp3"]
-
-soundtrack_selection = random.choice(soundtrack_list)
-soundtrack = pygame.mixer.Sound(soundtrack_selection)
-
-soundtrack.set_volume(0.3)
-soundtrack.play()
 
 #the game
 
@@ -152,21 +131,6 @@ while game_loop:
 
                     bounce_sound_effect.play()
 
-        # ball collision with the player 2's paddle
-        if 1160 <= ball_x <= 1200:
-            if player_2_y <= ball_y <= player_2_y + 150:
-                if ball_dx >= 0:
-                    ball_dx *= -1
-
-                    # ball's impact point
-                    impact_point = ball_y - player_2_y
-                    offset = impact_point - 75  # paddle's center
-
-                    # angle and speed adjustment
-                    ball_dy += offset * 0.02
-                    ball_speed = min(ball_speed + 0.2, 4)
-                    ball_x = 1159
-                    bounce_sound_effect.play()
 
         # scoring points
         if ball_x < 0:
@@ -207,44 +171,7 @@ while game_loop:
         elif player_1_y >= 570:
             player_1_y = 570
 
-        # player 2 "Artificial Intelligence"
-        if difficulty == 1:
-            if ball_x > 640:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 5.5
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 5.5
 
-        if difficulty == 2:
-            if ball_x > 560:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 5.5
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 5.5
-
-        if difficulty == 3:
-            if ball_x > 480:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 5.5
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 5.5
-
-        if difficulty == 4:
-            if ball_x > 200:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 6
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 6
-
-        elif difficulty != 1 and 2 and 3 and 4:
-            print("not a valid difficulty insert")
-            break
-
-        #player 2 paddle returning to the original place
-        if player_2_y <= 0:
-            player_2_y = 0
-        elif player_2_y >= 570:
-            player_2_y = 570
 
         # update score hud
         score_text = score_font.render(f'{score_1} x {score_2}',
@@ -252,8 +179,7 @@ while game_loop:
 
         # drawing objects
         screen.blit(ball, (ball_x, ball_y))
-        screen.blit(player_1, (50, player_1_y))
-        screen.blit(player_2, (1180, player_2_y))
+        screen.blit(player_1, (500, player_1_y))
         screen.blit(score_text, score_text_rect)
 
 
