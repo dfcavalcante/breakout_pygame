@@ -1,269 +1,133 @@
-#Jucimar Jr
-#2024
-
-#Bruno Brás Barros
-#2415310041
-
 import pygame
-import random
 
 pygame.init()
 
-#game colors
+# Cores do jogo
 COLOR_BLACK = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
+COLOR_RED = (255, 0, 0)
+COLOR_ORANGE = (255, 165, 0)
+COLOR_YELLOW = (255, 255, 0)
+COLOR_GREEN = (0, 255, 0)
 
-#score selection by the user
-score_select = int(input("select the max points for the victory condition: "))
-SCORE_MAX = score_select
-
-#difficulty selection
-difficulty = int(input("select the difficulty level: 1 for easy"
-                       " 2 for medium"
-                       " 3 for hard"
-                       " 4 for hardcore"))
-
-
-#game screen
-size = (1280, 720)
+# Dimensões da tela do jogo (600x900)
+size = (600, 900)
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("MyPong - PyGame Edition - 2024-09-02")
+pygame.display.set_caption("Breakout - 8 Fileiras, 2 Cores por Fileira")
 
-# score text
-score_font = pygame.font.Font('assets/PressStart2P.ttf', 44)
-score_text = score_font.render('00 x 00', True,
-                               COLOR_WHITE, COLOR_BLACK)
-score_text_rect = score_text.get_rect()
-score_text_rect.center = (680, 50)
+# Texto de pontuação
+score_font = pygame.font.Font(None, 44)
+score_text_rect = pygame.Rect(0, 0, 600, 50)
+score_text_rect.center = (300, 30)
 
-# victory text
-victory_font = pygame.font.Font('assets/PressStart2P.ttf', 100)
-victory_text = victory_font.render('VICTORY', True,
-                                   COLOR_WHITE, COLOR_BLACK)
-victory_text_rect = score_text.get_rect()
-victory_text_rect.center = (450, 350)
+# Jogador (paddle)
+player = pygame.Surface((120, 20))
+player.fill(COLOR_WHITE)
+player_x = 240
+player_move_left = False
+player_move_right = False
 
-
-
-# sound effects
-bounce_sound_effect = pygame.mixer.Sound('assets/bounce.wav')
-scoring_sound_effect = (pygame.mixer.Sound
-                        ('assets/258020__kodack__arcade-bleep-sound.wav'))
-
-# player 1
-player_1 = pygame.image.load("assets/player.png")
-player_1_y = 300
-player_1_move_up = False
-player_1_move_down = False
-
-# player 2 - robot
-player_2 = pygame.image.load("assets/player.png")
-player_2_y = 300
-
-# ball
-ball = pygame.image.load("assets/ball.png")
-ball_x = 640
-ball_y = 360
+# Bola
+ball = pygame.Surface((20, 20))
+ball.fill(COLOR_WHITE)
+ball_x = 290
+ball_y = 440
 ball_dx = 2.5
-ball_dy = 2.5
+ball_dy = -2.5
 ball_speed = 2.2
 initial_ball_speed = 2.2
 
+# Blocos
+block_width = 60
+block_height = 20
+blocks = []
 
-# score
-score_1 = 0
-score_2 = 0
+# Cores das linhas de blocos (2 fileiras por cor)
+block_colors = [COLOR_RED, COLOR_RED, COLOR_ORANGE, COLOR_ORANGE, COLOR_YELLOW, COLOR_YELLOW, COLOR_GREEN, COLOR_GREEN]
 
-# game loop
+# Ajuste de espaçamento e cálculo de posição centralizada
+num_cols = 10
+block_spacing_x = 5  # Espaçamento entre blocos na horizontal
+block_spacing_y = 5  # Espaçamento entre blocos na vertical
+total_block_width = num_cols * block_width + (num_cols - 1) * block_spacing_x
+start_x = (600 - total_block_width) // 2  # Posição inicial centralizada
+
+# Criando a grade de blocos (10 colunas, 8 linhas)
+for row in range(8):
+    for col in range(10):
+        block_x = start_x + col * (block_width + block_spacing_x)  # Centralizando os blocos
+        block_y = row * (block_height + block_spacing_y) + 100  # Espaçamento vertical
+        block_color = block_colors[row]
+        blocks.append(pygame.Rect(block_x, block_y, block_width, block_height))
+
+# Pontuação
+score = 0
+
+# Game loop
 game_loop = True
 game_clock = pygame.time.Clock()
-
-#selecting and playing the sountrack
-soundtrack_list =\
-["SOUNDTRACKS/Mega Man 2 - Dr. Wily's Castle - UryaV.mp3",
-"SOUNDTRACKS/DuckTales Music (NES) - The Moon Theme - explod2A03.mp3",
-"SOUNDTRACKS/Masked Dedede 8 Bit Remix - Kirby Super Star Ultra (Konami VRC6) "
-"- Bulby.mp3",
-"SOUNDTRACKS/Castlevania II Music (NES) - Bloody Tears (Day Theme) - "
-"explod2A03.mp3",
- "SOUNDTRACKS/Attack of the Killer Queen - Toby Fox.mp3",
- "SOUNDTRACKS/Thunderstruck (2023) [8 Bit Tribute to AC_DC] - 8 Bit Universe "
- "- 8 Bit Universe.mp3"]
-
-soundtrack_selection = random.choice(soundtrack_list)
-soundtrack = pygame.mixer.Sound(soundtrack_selection)
-
-soundtrack.set_volume(0.3)
-soundtrack.play()
-
-#the game
 
 while game_loop:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game_loop = False
 
-        # keystroke events
+        # Eventos de teclado
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                player_1_move_up = True
-            if event.key == pygame.K_DOWN:
-                player_1_move_down = True
+            if event.key == pygame.K_LEFT:
+                player_move_left = True
+            if event.key == pygame.K_RIGHT:
+                player_move_right = True
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP:
-                player_1_move_up = False
-            if event.key == pygame.K_DOWN:
-                player_1_move_down = False
+            if event.key == pygame.K_LEFT:
+                player_move_left = False
+            if event.key == pygame.K_RIGHT:
+                player_move_right = False
 
-    # checking the victory condition
-    if score_1 < SCORE_MAX and score_2 < SCORE_MAX:
+    # Limpar a tela
+    screen.fill(COLOR_BLACK)
 
-        # clear screen
-        screen.fill(COLOR_BLACK)
+    # Desenhar blocos
+    for block in blocks:
+        row_color = block_colors[blocks.index(block) // 10]  # Cor da linha do bloco
+        pygame.draw.rect(screen, row_color, block)
 
-        # ball collision with the wall
-        if ball_y >=690:
-            ball_y = 690
+    # Movimento da bola
+    ball_x += ball_dx * ball_speed
+    ball_y += ball_dy * ball_speed
+
+    # Movimento do jogador (paddle)
+    if player_move_left and player_x > 0:
+        player_x -= 5.5
+    if player_move_right and player_x < 480:
+        player_x += 5.5
+
+    # Colisão da bola com as paredes
+    if ball_x <= 0 or ball_x >= 580:
+        ball_dx *= -1
+    if ball_y <= 0 or ball_y >= 880:
+        ball_dy *= -1
+
+    # Colisão da bola com o paddle
+    if 860 <= ball_y <= 880 and player_x <= ball_x <= player_x + 120:
+        ball_dy *= -1
+
+    # Colisão da bola com os blocos
+    for block in blocks[:]:
+        if block.collidepoint(ball_x, ball_y):
+            blocks.remove(block)
             ball_dy *= -1
-            bounce_sound_effect.play()
+            score += 1
 
-        elif ball_y <= 0:
-            ball_y = 0
-            ball_dy *= -1
-            bounce_sound_effect.play()
+    # Desenhar os objetos na tela
+    screen.blit(ball, (ball_x, ball_y))
+    screen.blit(player, (player_x, 880))
 
-        # ball collision with the player 1's paddle
-        if 25 <= ball_x <= 100:
-            if player_1_y <= ball_y <= player_1_y + 150:
-                if ball_dx <= 0:
-                    ball_dx *= - 1
+    # Atualizar o texto da pontuação
+    score_text = score_font.render(f'Score: {score}', True, COLOR_WHITE)
+    screen.blit(score_text, score_text_rect)
 
-                    # ball's impact point
-                    impact_point = ball_y - player_1_y
-
-                    offset = impact_point - 75  #  paddle's center
-
-                    # angle and speed adjustment
-                    ball_dy += offset * 0.02
-
-                    ball_speed = min(ball_speed + 0.2, 4)
-
-                    ball_x = 101
-
-                    bounce_sound_effect.play()
-
-        # ball collision with the player 2's paddle
-        if 1160 <= ball_x <= 1200:
-            if player_2_y <= ball_y <= player_2_y + 150:
-                if ball_dx >= 0:
-                    ball_dx *= -1
-
-                    # ball's impact point
-                    impact_point = ball_y - player_2_y
-                    offset = impact_point - 75  # paddle's center
-
-                    # angle and speed adjustment
-                    ball_dy += offset * 0.02
-                    ball_speed = min(ball_speed + 0.2, 4)
-                    ball_x = 1159
-                    bounce_sound_effect.play()
-
-        # scoring points
-        if ball_x < 0:
-            ball_x = 640
-            ball_y = 360
-            ball_dy = 2.5
-            ball_dx = 2.5
-            ball_speed = 2.2
-            ball_speed = initial_ball_speed
-            score_2 += 1
-            scoring_sound_effect.play()
-
-        elif ball_x > 1280:
-            ball_x = 640
-            ball_y = 360
-            ball_dy = 2.5
-            ball_dx = 2.5
-            ball_speed = 2.2
-            ball_speed = initial_ball_speed
-            score_1 += 1
-            scoring_sound_effect.play()
-
-        # ball movement
-        ball_x += ball_dx * ball_speed
-        ball_y += ball_dy * ball_speed
-
-        # player 1 up movement
-        if player_1_move_up and player_1_y >0 :
-            player_1_y -= 5.5
-        if player_1_move_down and player_1_y < 570:
-            player_1_y += 5.5
-
-        # player 1 collides with upper wall
-        if player_1_y <= 0:
-            player_1_y = 0
-
-        # player 1 collides with lower wall
-        elif player_1_y >= 570:
-            player_1_y = 570
-
-        # player 2 "Artificial Intelligence"
-        if difficulty == 1:
-            if ball_x > 640:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 5.5
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 5.5
-
-        if difficulty == 2:
-            if ball_x > 560:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 5.5
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 5.5
-
-        if difficulty == 3:
-            if ball_x > 480:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 5.5
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 5.5
-
-        if difficulty == 4:
-            if ball_x > 200:
-                if player_2_y + 75 <= ball_y:
-                    player_2_y += 6
-                elif player_2_y + 75 > ball_y:
-                    player_2_y -= 6
-
-        elif difficulty != 1 and 2 and 3 and 4:
-            print("not a valid difficulty insert")
-            break
-
-        #player 2 paddle returning to the original place
-        if player_2_y <= 0:
-            player_2_y = 0
-        elif player_2_y >= 570:
-            player_2_y = 570
-
-        # update score hud
-        score_text = score_font.render(f'{score_1} x {score_2}',
-                                       True, COLOR_WHITE, COLOR_BLACK)
-
-        # drawing objects
-        screen.blit(ball, (ball_x, ball_y))
-        screen.blit(player_1, (50, player_1_y))
-        screen.blit(player_2, (1180, player_2_y))
-        screen.blit(score_text, score_text_rect)
-
-
-    else:
-        # drawing victory
-        screen.fill(COLOR_BLACK)
-        screen.blit(score_text, score_text_rect)
-        screen.blit(victory_text, victory_text_rect)
-
-    # update screen
+    # Atualizar a tela
     pygame.display.flip()
     game_clock.tick(60)
 
