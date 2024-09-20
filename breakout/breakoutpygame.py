@@ -104,7 +104,7 @@ def increase_ball_speed():
 # Função para verificar colisão com a raquete e ajustar o ângulo da bola
 def ball_paddle_collision():
     global ball_dy, ball_dx, paddle_hits
-    if ball_y >= 830 and player_x <= ball_x <= player_x + 60:
+    if 815 <= ball_y <= 840  and player_x <= ball_x <= player_x + 60:
         ball_dy *= -1
         paddle_hits += 1
 
@@ -197,7 +197,7 @@ while game_loop:
 
     # Desenhar o placar
     score_text_left = score_font.render(f"{score_left:03}", True, COLOR_WHITE)
-    score_text_right = score_font.render(f"{score_right:03}", True, COLOR_WHITE)
+    score_text_right = score_font.render(f"{lives}", True, COLOR_WHITE)
     screen.blit(score_text_left, score_text_rect_left)
     screen.blit(score_text_right, score_text_rect_right)
 
