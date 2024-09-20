@@ -30,7 +30,7 @@ player_move_left = False
 player_move_right = False
 
 # Bola
-ball = pygame.Surface((15, 15))  # Bola um pouco menor
+ball = pygame.Surface((10, 10))  # Bola um pouco menor
 ball.fill(COLOR_WHITE)
 ball_x = 340
 ball_y = 420
@@ -41,13 +41,13 @@ initial_ball_speed = 2.2
 max_ball_speed = 6.0
 
 # Blocos (estilo retrô)
-block_width = 60
-block_height = 20
+block_width = 42
+block_height = 12
 blocks = []
 block_colors = []
 
 # Cores das linhas de blocos (2 fileiras por cor)
-row_colors = [COLOR_RED, COLOR_RED, COLOR_ORANGE, COLOR_ORANGE, COLOR_YELLOW, COLOR_YELLOW, COLOR_GREEN, COLOR_GREEN]
+row_colors = [COLOR_RED, COLOR_RED, COLOR_ORANGE, COLOR_ORANGE, COLOR_GREEN, COLOR_GREEN, COLOR_YELLOW, COLOR_YELLOW]
 
 # Ajuste de espaçamento e cálculo de posição centralizada
 num_cols = 14  # Agora com mais colunas para ser fiel ao design
@@ -104,7 +104,7 @@ def increase_ball_speed():
 # Função para verificar colisão com a raquete e ajustar o ângulo da bola
 def ball_paddle_collision():
     global ball_dy, ball_dx, paddle_hits
-    if 815 <= ball_y <= 840  and player_x <= ball_x <= player_x + 60:
+    if 817 <= ball_y <= 822  and player_x <= ball_x <= player_x + 60:
         ball_dy *= -1
         paddle_hits += 1
 
