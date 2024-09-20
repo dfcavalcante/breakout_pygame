@@ -36,6 +36,7 @@ ball_dx = 2.5
 ball_dy = -2.5
 ball_speed = 2.2
 initial_ball_speed = 2.2
+max_ball_speed = 6.0
 
 # Blocos
 block_width = 60
@@ -63,14 +64,17 @@ for row in range(8):
 # Pontuação e vidas
 score = 0
 lives = 1
+paddle_hits = 0  # Paddle hits counter
 
 # Função para reiniciar o jogo
 def reset_game():
-    global ball_x, ball_y, ball_dx, ball_dy, score, blocks, lives
+    global ball_x, ball_y, ball_dx, ball_dy, score, blocks, lives, ball_speed, paddle_hits
     ball_x = 290
     ball_y = 440
     ball_dx = 2.5
     ball_dy = -2.5
+    ball_speed = initial_ball_speed
+    paddle_hits = 0
     score = 0
     lives = 1
     blocks.clear()
@@ -79,6 +83,11 @@ def reset_game():
             block_x = start_x + col * (block_width + block_spacing_x)
             block_y = row * (block_height + block_spacing_y) + 100
             blocks.append(pygame.Rect(block_x, block_y, block_width, block_height))
+
+# Function to increase ball's speed
+def increase_ball_speed():
+    global ball_speed
+    ball_speed = min(ball_speed + 0.5, max_ball_speed)  # Aumenta a velocidade e limita ao máximo
 
 # Game loop
 game_loop = True
@@ -128,6 +137,11 @@ while game_loop:
     # Colisão da bola com o paddle
     if ball_y >= 860 and player_x <= ball_x <= player_x + 120:
         ball_dy *= -1
+        paddle_hits += 1  # Counts Paddle collisions
+
+        # Incrase ball's speed after 4 hits and them 12 hits
+        if paddle_hits == 4 or paddle_hits == 12:
+            increase_ball_speed()
 
     # Colisão da bola com os blocos
     for block in blocks[:]:
@@ -135,6 +149,13 @@ while game_loop:
             blocks.remove(block)
             ball_dy *= -1
             score += 1
+
+            # Verifica a cor do bloco atingido para aumentar a velocidade
+            block_index = blocks.index(block) // 10 if block in blocks else -1
+            if block_index in [0, 1]:  # red row
+                increase_ball_speed()
+            elif block_index in [2, 3]:  # orange row
+                increase_ball_speed()
 
     # Verifica se a bola caiu
     if ball_y > 1000:
