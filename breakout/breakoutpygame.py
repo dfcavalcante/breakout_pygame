@@ -5,91 +5,120 @@ pygame.init()
 # Cores do jogo
 COLOR_BLACK = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
+COLOR_BLUE = (0, 120, 255)
+COLOR_GRAY = (200, 200, 200)  # Cor das bordas e da moldura
 COLOR_RED = (255, 0, 0)
 COLOR_ORANGE = (255, 165, 0)
 COLOR_YELLOW = (255, 255, 0)
 COLOR_GREEN = (0, 255, 0)
 
-# Dimensões da tela do jogo (600x950)
-size = (600, 950)
+# Dimensões da tela do jogo (700x850)
+size = (700, 850)
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Breakout - 8 Fileiras, 2 Cores por Fileira")
+pygame.display.set_caption("Breakout Retro Style")
 
 # Texto de pontuação
-score_font = pygame.font.Font(None, 44)
-score_text_rect = pygame.Rect(0, 0, 600, 50)
-score_text_rect.center = (300, 30)
+score_font = pygame.font.Font(None, 80)  # Fonte maior e retrô
+score_text_rect_left = pygame.Rect(70, 20, 100, 100)  # Ajuste da posição do placar esquerdo
+score_text_rect_right = pygame.Rect(500, 20, 100, 100)  # Ajuste da posição do placar direito
 
-# Jogador (paddle)
-player = pygame.Surface((120, 20))
-player.fill(COLOR_WHITE)
-player_x = 240
+# Jogador (paddle) - agora menor e azul
+player = pygame.Surface((60, 20))
+player.fill(COLOR_BLUE)
+player_x = 320
 player_move_left = False
 player_move_right = False
 
 # Bola
-ball = pygame.Surface((20, 20))
+ball = pygame.Surface((15, 15))  # Bola um pouco menor
 ball.fill(COLOR_WHITE)
-ball_x = 290
-ball_y = 440
+ball_x = 340
+ball_y = 420
 ball_dx = 2.5
 ball_dy = -2.5
 ball_speed = 2.2
 initial_ball_speed = 2.2
 max_ball_speed = 6.0
 
-# Blocos
+# Blocos (estilo retrô)
 block_width = 60
 block_height = 20
 blocks = []
+block_colors = []
 
 # Cores das linhas de blocos (2 fileiras por cor)
-block_colors = [COLOR_RED, COLOR_RED, COLOR_ORANGE, COLOR_ORANGE, COLOR_YELLOW, COLOR_YELLOW, COLOR_GREEN, COLOR_GREEN]
+row_colors = [COLOR_RED, COLOR_RED, COLOR_ORANGE, COLOR_ORANGE, COLOR_YELLOW, COLOR_YELLOW, COLOR_GREEN, COLOR_GREEN]
 
 # Ajuste de espaçamento e cálculo de posição centralizada
-num_cols = 10
-block_spacing_x = 5
-block_spacing_y = 5
+num_cols = 14  # Agora com mais colunas para ser fiel ao design
+block_spacing_x = 3
+block_spacing_y = 3
 total_block_width = num_cols * block_width + (num_cols - 1) * block_spacing_x
-start_x = (600 - total_block_width) // 2
+start_x = (700 - total_block_width) // 2
 
-# Criando a grade de blocos (10 colunas, 8 linhas)
+# Criando a grade de blocos (14 colunas, 8 linhas) e atribuindo cores fixas
 for row in range(8):
-    for col in range(10):
+    for col in range(14):
         block_x = start_x + col * (block_width + block_spacing_x)
-        block_y = row * (block_height + block_spacing_y) + 100
-        block_color = block_colors[row]
+        block_y = row * (block_height + block_spacing_y) + 150  # Ajustando a altura
         blocks.append(pygame.Rect(block_x, block_y, block_width, block_height))
+        block_colors.append(row_colors[row])  # Mantém a cor da fileira para o bloco correspondente
+
+# Bordas (laterais e superior)
+left_border = pygame.Rect(20, 0, 20, 850)  # Borda esquerda
+right_border = pygame.Rect(660, 0, 20, 850)  # Borda direita
+top_border = pygame.Rect(20, 0, 660, 20)  # Borda superior
 
 # Pontuação e vidas
-score = 0
+score_left = 0
+score_right = 0
 lives = 1
-paddle_hits = 0  # Paddle hits counter
+paddle_hits = 0  # Contador de colisões com a raquete
 
 # Função para reiniciar o jogo
 def reset_game():
-    global ball_x, ball_y, ball_dx, ball_dy, score, blocks, lives, ball_speed, paddle_hits
-    ball_x = 290
-    ball_y = 440
+    global ball_x, ball_y, ball_dx, ball_dy, score_left, score_right, blocks, block_colors, lives, ball_speed, paddle_hits
+    ball_x = 340
+    ball_y = 420
     ball_dx = 2.5
     ball_dy = -2.5
     ball_speed = initial_ball_speed
     paddle_hits = 0
-    score = 0
+    score_left = 0
+    score_right = 0
     lives = 1
     blocks.clear()
+    block_colors.clear()
     for row in range(8):
-        for col in range(10):
+        for col in range(14):
             block_x = start_x + col * (block_width + block_spacing_x)
-            block_y = row * (block_height + block_spacing_y) + 100
+            block_y = row * (block_height + block_spacing_y) + 150
             blocks.append(pygame.Rect(block_x, block_y, block_width, block_height))
+            block_colors.append(row_colors[row])
 
-# Function to increase ball's speed
+# Função para aumentar a velocidade da bola
 def increase_ball_speed():
     global ball_speed
     ball_speed = min(ball_speed + 0.5, max_ball_speed)  # Aumenta a velocidade e limita ao máximo
 
-# Game loop
+# Função para verificar colisão com a raquete e ajustar o ângulo da bola
+def ball_paddle_collision():
+    global ball_dy, ball_dx, paddle_hits
+    if ball_y >= 830 and player_x <= ball_x <= player_x + 60:
+        ball_dy *= -1
+        paddle_hits += 1
+
+        # Ajuste a direção com base na posição onde a bola colide com a raquete
+        hit_pos = ball_x - player_x
+        if hit_pos < 20:  # Esquerda da raquete
+            ball_dx = -abs(ball_dx)  # Mover para a esquerda
+        elif hit_pos > 40:  # Direita da raquete
+            ball_dx = abs(ball_dx)  # Mover para a direita
+
+        if paddle_hits == 4 or paddle_hits == 12:
+            increase_ball_speed()
+
+# Loop do jogo
 game_loop = True
 game_clock = pygame.time.Clock()
 
@@ -113,49 +142,42 @@ while game_loop:
     # Limpar a tela
     screen.fill(COLOR_BLACK)
 
+    # Desenhar bordas
+    pygame.draw.rect(screen, COLOR_GRAY, left_border)
+    pygame.draw.rect(screen, COLOR_GRAY, right_border)
+    pygame.draw.rect(screen, COLOR_GRAY, top_border)
+
     # Desenhar blocos
-    for block in blocks:
-        row_color = block_colors[blocks.index(block) // 10]
-        pygame.draw.rect(screen, row_color, block)
+    for i, block in enumerate(blocks):
+        pygame.draw.rect(screen, block_colors[i], block)
 
     # Movimento da bola
     ball_x += ball_dx * ball_speed
     ball_y += ball_dy * ball_speed
 
     # Movimento do jogador (paddle)
-    if player_move_left and player_x > 0:
+    if player_move_left and player_x > 40:  # Limitando com a borda esquerda
         player_x -= 5.5
-    if player_move_right and player_x < 480:
+    if player_move_right and player_x < 600:  # Limitando com a borda direita
         player_x += 5.5
 
     # Colisão da bola com as paredes
-    if ball_x <= 0 or ball_x >= 580:
+    if ball_x <= 40 or ball_x >= 640:
         ball_dx *= -1
-    if ball_y <= 0:
+    if ball_y <= 20:
         ball_dy *= -1
 
     # Colisão da bola com o paddle
-    if ball_y >= 860 and player_x <= ball_x <= player_x + 120:
-        ball_dy *= -1
-        paddle_hits += 1  # Counts Paddle collisions
-
-        # Incrase ball's speed after 4 hits and them 12 hits
-        if paddle_hits == 4 or paddle_hits == 12:
-            increase_ball_speed()
+    ball_paddle_collision()
 
     # Colisão da bola com os blocos
     for block in blocks[:]:
         if block.collidepoint(ball_x, ball_y):
+            index = blocks.index(block)
             blocks.remove(block)
+            block_colors.pop(index)  # Remove a cor associada ao bloco
             ball_dy *= -1
-            score += 1
-
-            # Verifica a cor do bloco atingido para aumentar a velocidade
-            block_index = blocks.index(block) // 10 if block in blocks else -1
-            if block_index in [0, 1]:  # red row
-                increase_ball_speed()
-            elif block_index in [2, 3]:  # orange row
-                increase_ball_speed()
+            score_left += 1  # Incrementa o placar da esquerda
 
     # Verifica se a bola caiu
     if ball_y > 1000:
@@ -164,23 +186,23 @@ while game_loop:
             reset_game()  # Reiniciar jogo
         else:
             pygame.time.delay(500)  # Atraso de 500 ms para dar tempo de reação
-            ball_x = 290
-            ball_y = 440
+            ball_x = 340
+            ball_y = 420
             ball_dx = 2.5
             ball_dy = -2.5
 
     # Desenhar os objetos na tela
     screen.blit(ball, (ball_x, ball_y))
-    screen.blit(player, (player_x, 880))
+    screen.blit(player, (player_x, 830))
 
-    # Atualizar o texto da pontuação
-    score_text = score_font.render(f'{score}', True, COLOR_WHITE)
-    lives_text = score_font.render(f'{lives}', True, COLOR_WHITE)
-    screen.blit(score_text, score_text_rect)
-    screen.blit(lives_text, (150, 6))
+    # Desenhar o placar
+    score_text_left = score_font.render(f"{score_left:03}", True, COLOR_WHITE)
+    score_text_right = score_font.render(f"{score_right:03}", True, COLOR_WHITE)
+    screen.blit(score_text_left, score_text_rect_left)
+    screen.blit(score_text_right, score_text_rect_right)
 
-    # Atualizar a tela
     pygame.display.flip()
-    game_clock.tick(60)
+
+    game_clock.tick(60)  # 60 FPS
 
 pygame.quit()
