@@ -124,9 +124,9 @@ def decrease_paddle_size():
         player = pygame.Surface((30, 20))
 
 # Sound Effects
-hit_wall = pygame.mixer.Sound('Sounds/ball_hit_wall.wav')
-hit_block = pygame.mixer.Sound('Sounds/ball_hit_block.wav')
-hit_paddle = pygame.mixer.Sound('Sounds/ball_hit_paddle.wav')
+hit_wall = pygame.mixer.Sound('assets/ball_hit_wall.wav')
+hit_block = pygame.mixer.Sound('assets/ball_hit_block.wav')
+hit_paddle = pygame.mixer.Sound('assets/ball_hit_paddle.wav')
 
 # Loop do jogo
 game_loop = True
