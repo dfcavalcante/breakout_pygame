@@ -22,9 +22,15 @@ score_font = pygame.font.Font(None, 80)  # Fonte maior e retrô
 score_text_rect_left = pygame.Rect(70, 20, 100, 100)  # Ajuste da posição do placar esquerdo
 score_text_rect_right = pygame.Rect(500, 20, 100, 100)  # Ajuste da posição do placar direito
 
-# Jogador (paddle) - agora menor e azul
-player = pygame.Surface((60, 20))
-player.fill(COLOR_BLUE)
+# Tamanho inicial da raquete
+initial_paddle_width = 60
+initial_paddle_height = 20
+paddle_width = initial_paddle_width
+paddle_height = initial_paddle_height
+
+# Jogador (paddle)
+player_surface = pygame.Surface((paddle_width, paddle_height))
+player_surface.fill(COLOR_BLUE)
 player_x = 320
 player_move_left = False
 player_move_right = False
@@ -119,9 +125,7 @@ def ball_paddle_collision():
         if paddle_hits == 4 or paddle_hits == 12:
             increase_ball_speed()
 
-def decrease_paddle_size():
-    if ball_y <= 20:
-        player = pygame.Surface((30, 20))
+first_top_collision = True  # Variável para verificar a primeira colisão com a parede de cima
 
 # Sound Effects
 hit_wall = pygame.mixer.Sound('assets/ball_hit_wall.wav')
@@ -177,6 +181,11 @@ while game_loop:
         hit_wall.play()
     if ball_y <= 20:
         ball_dy *= -1
+        if first_top_collision:
+            paddle_width = 40  # Alterar tamanho da raquete
+            player_surface = pygame.Surface((paddle_width, paddle_height))  # Redesenhar a nova raquete
+            player_surface.fill(COLOR_BLUE)  # Preencher a nova raquete com a cor
+            first_top_collision = False  # Marcar que a colisão já ocorreu
         hit_wall.play()
 
     # Colisão da bola com o paddle
@@ -196,6 +205,11 @@ while game_loop:
     # Verifica se a bola caiu
     if ball_y > 1000:
         lives += 1
+        first_top_collision = True
+        paddle_width = initial_paddle_width  # Redefinir o tamanho da raquete
+        paddle_height = initial_paddle_height  # Redefinir o tamanho da raquete
+        player_surface = pygame.Surface((paddle_width, paddle_height))  # Redesenhar a raquete
+        player_surface.fill(COLOR_BLUE)  # Preencher a nova raquete com a cor
         if lives >= 4:
             reset_game()  # Reiniciar jogo
         else:
@@ -207,7 +221,7 @@ while game_loop:
 
     # Desenhar os objetos na tela
     screen.blit(ball, (ball_x, ball_y))
-    screen.blit(player, (player_x, 830))
+    screen.blit(player_surface, (player_x, 830))
 
     # Desenhar o placar
     score_text_left = score_font.render(f"{score_left:03}", True, COLOR_WHITE)
