@@ -23,9 +23,7 @@ score_text_rect_left = pygame.Rect(70, 20, 100, 100)  # Ajuste da posição do p
 score_text_rect_right = pygame.Rect(500, 20, 100, 100)  # Ajuste da posição do placar direito
 
 # Jogador (paddle) - agora menor e azul
-player_width = 60  # Largura inicial do paddle
-player_height = 20
-player = pygame.Surface((player_width, player_height))
+player = pygame.Surface((60, 20))
 player.fill(COLOR_BLUE)
 player_x = 320
 player_move_left = False
@@ -66,13 +64,10 @@ for row in range(8):
         blocks.append(pygame.Rect(block_x, block_y, block_width, block_height))
         block_colors.append(row_colors[row])  # Mantém a cor da fileira para o bloco correspondente
 
-# Bordas laterais e superior
+# Bordas (laterais e superior)
 left_border = pygame.Rect(20, 0, 20, 850)  # Borda esquerda
 right_border = pygame.Rect(660, 0, 20, 850)  # Borda direita
 top_border = pygame.Rect(20, 0, 660, 20)  # Borda superior
-
-# Cor das bordas laterais e superior
-border_color = COLOR_BLUE  # Ajustado para azul
 
 # Pontuação e vidas
 score_left = 0
@@ -94,7 +89,6 @@ def reset_game():
     lives = 1
     blocks.clear()
     block_colors.clear()
-
     for row in range(8):
         for col in range(14):
             block_x = start_x + col * (block_width + block_spacing_x)
@@ -110,30 +104,21 @@ def increase_ball_speed():
 # Função para verificar colisão com a raquete e ajustar o ângulo da bola
 def ball_paddle_collision():
     global ball_dy, ball_dx, paddle_hits
-<<<<<<< HEAD
     if 817 <= ball_y <= 822  and player_x <= ball_x <= player_x + 62:
-=======
-    # Verifica a colisão da bola com a raquete
-    if 817 <= ball_y <= 822 and player_x <= ball_x <= player_x + player_width:
->>>>>>> 78bf9fa834cce8b232221bd0b72deedf8fe60bc1
         ball_dy *= -1
         paddle_hits += 1
         hit_paddle.play()
 
         # Ajuste a direção com base na posição onde a bola colide com a raquete
         hit_pos = ball_x - player_x
-        if hit_pos < player_width // 3:  # Esquerda da raquete
+        if hit_pos < 20:  # Esquerda da raquete
             ball_dx = -abs(ball_dx)  # Mover para a esquerda
-        elif hit_pos > (2 * player_width) // 3:  # Direita da raquete
+        elif hit_pos > 40:  # Direita da raquete
             ball_dx = abs(ball_dx)  # Mover para a direita
-        else:
-            ball_dx = 0  # Se bater no meio, mantém o eixo horizontal
 
-        # Aumenta a velocidade da bola em certos intervalos
         if paddle_hits == 4 or paddle_hits == 12:
             increase_ball_speed()
 
-<<<<<<< HEAD
 def decrease_paddle_size():
     if ball_y <= 20:
         player = pygame.Surface((30, 20))
@@ -142,36 +127,6 @@ def decrease_paddle_size():
 hit_wall = pygame.mixer.Sound('Sounds/ball_hit_wall.wav')
 hit_block = pygame.mixer.Sound('Sounds/ball_hit_block.wav')
 hit_paddle = pygame.mixer.Sound('Sounds/ball_hit_paddle.wav')
-=======
-# Função para aumentar o paddle ao perder vida
-def increase_paddle_size():
-    global player_width, player
-    player_width = 660  # Largura total da tela (menos as bordas)
-    player = pygame.Surface((player_width, player_height))
-    player.fill(COLOR_BLUE)
-
-# Função para restaurar o tamanho original do paddle
-def restore_paddle_size():
-    global player_width, player
-    player_width = 60  # Largura original do paddle
-    player = pygame.Surface((player_width, player_height))
-    player.fill(COLOR_BLUE)
-
-# Função para lidar com a perda de vidas
-def handle_life_loss():
-    global lives, ball_x, ball_y, ball_dx, ball_dy
-    lives += 1
-    if lives >= 4:
-        reset_game()  # Reiniciar jogo se todas as vidas forem perdidas
-    else:
-        increase_paddle_size()  # Aumentar paddle ao perder vida
-        pygame.time.delay(500)  # Atraso de 500 ms para dar tempo de reação
-        restore_paddle_size()  # Restaurar o tamanho do paddle após o atraso
-        ball_x = 340
-        ball_y = 420
-        ball_dx = 2.5
-        ball_dy = -2.5
->>>>>>> 78bf9fa834cce8b232221bd0b72deedf8fe60bc1
 
 # Loop do jogo
 game_loop = True
@@ -198,9 +153,9 @@ while game_loop:
     screen.fill(COLOR_BLACK)
 
     # Desenhar bordas
-    pygame.draw.rect(screen, border_color, left_border)
-    pygame.draw.rect(screen, border_color, right_border)
-    pygame.draw.rect(screen, border_color, top_border)
+    pygame.draw.rect(screen, COLOR_GRAY, left_border)
+    pygame.draw.rect(screen, COLOR_GRAY, right_border)
+    pygame.draw.rect(screen, COLOR_GRAY, top_border)
 
     # Desenhar blocos
     for i, block in enumerate(blocks):
@@ -213,26 +168,20 @@ while game_loop:
     # Movimento do jogador (paddle)
     if player_move_left and player_x > 40:  # Limitando com a borda esquerda
         player_x -= 10
-    if player_move_right and player_x < 700 - player_width - 40:  # Limitando com a borda direita
+    if player_move_right and player_x < 600:  # Limitando com a borda direita
         player_x += 10
 
     # Colisão da bola com as paredes
     if ball_x <= 40 or ball_x >= 640:
         ball_dx *= -1
-<<<<<<< HEAD
         hit_wall.play()
     if ball_y <= 20:
-=======
-
-    if ball_y <= 40:
->>>>>>> 78bf9fa834cce8b232221bd0b72deedf8fe60bc1
         ball_dy *= -1
         hit_wall.play()
 
-    # Colisão com o paddle
+    # Colisão da bola com o paddle
     ball_paddle_collision()
 
-<<<<<<< HEAD
 
     # Colisão da bola com os blocos
     for block in blocks[:]:
@@ -241,39 +190,33 @@ while game_loop:
             index = blocks.index(block)
             blocks.remove(block)
             block_colors.pop(index)  # Remove a cor associada ao bloco
-=======
-    # Colisão com os blocos
-    for i in range(len(blocks)):
-        if blocks[i].collidepoint(ball_x, ball_y):
->>>>>>> 78bf9fa834cce8b232221bd0b72deedf8fe60bc1
             ball_dy *= -1
-            del blocks[i]  # Remover o bloco usando o índice
-            del block_colors[i]  # Remover a cor do índice correspondente
-            if ball_x < 350:
-                score_left += 1
-            else:
-                score_right += 1
-            break
+            score_left += 1  # Incrementa o placar da esquerda
 
-    # Verificar se a bola caiu abaixo do paddle
-    if ball_y > 850:
-        handle_life_loss()
+    # Verifica se a bola caiu
+    if ball_y > 1000:
+        lives += 1
+        if lives >= 4:
+            reset_game()  # Reiniciar jogo
+        else:
+            pygame.time.delay(500)  # Atraso de 500 ms para dar tempo de reação
+            ball_x = 340
+            ball_y = 420
+            ball_dx = 2.5
+            ball_dy = -2.5
 
-    # Desenhar paddle e bola
-    screen.blit(player, (player_x, 820))
+    # Desenhar os objetos na tela
     screen.blit(ball, (ball_x, ball_y))
+    screen.blit(player, (player_x, 830))
 
-    # Atualizar e desenhar placar
-    score_text_left = score_font.render(str(score_left), True, COLOR_WHITE)
-    score_text_right = score_font.render(str(score_right), True, COLOR_WHITE)
+    # Desenhar o placar
+    score_text_left = score_font.render(f"{score_left:03}", True, COLOR_WHITE)
+    score_text_right = score_font.render(f"{lives}", True, COLOR_WHITE)
     screen.blit(score_text_left, score_text_rect_left)
     screen.blit(score_text_right, score_text_rect_right)
 
-    # Atualizar a tela
     pygame.display.flip()
 
-    # FPS
-    game_clock.tick(60)
+    game_clock.tick(60)  # 60 FPS
 
-# Encerrar o jogo
 pygame.quit()
