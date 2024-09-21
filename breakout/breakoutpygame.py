@@ -104,9 +104,10 @@ def increase_ball_speed():
 # Função para verificar colisão com a raquete e ajustar o ângulo da bola
 def ball_paddle_collision():
     global ball_dy, ball_dx, paddle_hits
-    if 817 <= ball_y <= 822  and player_x <= ball_x <= player_x + 60:
+    if 817 <= ball_y <= 822  and player_x <= ball_x <= player_x + 62:
         ball_dy *= -1
         paddle_hits += 1
+        hit_paddle.play()
 
         # Ajuste a direção com base na posição onde a bola colide com a raquete
         hit_pos = ball_x - player_x
@@ -117,6 +118,15 @@ def ball_paddle_collision():
 
         if paddle_hits == 4 or paddle_hits == 12:
             increase_ball_speed()
+
+def decrease_paddle_size():
+    if ball_y <= 20:
+        player = pygame.Surface((30, 20))
+
+# Sound Effects
+hit_wall = pygame.mixer.Sound('Sounds/ball_hit_wall.wav')
+hit_block = pygame.mixer.Sound('Sounds/ball_hit_block.wav')
+hit_paddle = pygame.mixer.Sound('Sounds/ball_hit_paddle.wav')
 
 # Loop do jogo
 game_loop = True
@@ -164,15 +174,19 @@ while game_loop:
     # Colisão da bola com as paredes
     if ball_x <= 40 or ball_x >= 640:
         ball_dx *= -1
+        hit_wall.play()
     if ball_y <= 20:
         ball_dy *= -1
+        hit_wall.play()
 
     # Colisão da bola com o paddle
     ball_paddle_collision()
 
+
     # Colisão da bola com os blocos
     for block in blocks[:]:
         if block.collidepoint(ball_x, ball_y):
+            hit_block.play()
             index = blocks.index(block)
             blocks.remove(block)
             block_colors.pop(index)  # Remove a cor associada ao bloco
