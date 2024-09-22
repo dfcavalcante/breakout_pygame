@@ -13,7 +13,7 @@ COLOR_YELLOW = (255, 255, 0)
 COLOR_GREEN = (0, 255, 0)
 
 # Dimensões da tela do jogo (700x850)
-size = (700, 850)
+size = (600, 850)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Breakout Retro Style")
 
@@ -60,7 +60,7 @@ num_cols = 14  # Agora com mais colunas para ser fiel ao design
 block_spacing_x = 3
 block_spacing_y = 3
 total_block_width = num_cols * block_width + (num_cols - 1) * block_spacing_x
-start_x = (700 - total_block_width) // 2
+start_x = (600 - total_block_width) // 2
 
 # Criando a grade de blocos (14 colunas, 8 linhas) e atribuindo cores fixas
 for row in range(8):
@@ -72,8 +72,8 @@ for row in range(8):
 
 # Bordas (laterais e superior)
 left_border = pygame.Rect(20, 0, 20, 850)  # Borda esquerda
-right_border = pygame.Rect(660, 0, 20, 850)  # Borda direita
-top_border = pygame.Rect(20, 0, 660, 20)  # Borda superior
+right_border = pygame.Rect(560, 0, 20, 850)  # Borda direita
+top_border = pygame.Rect(20, 0, 560, 20)  # Borda superior
 
 # Pontuação e vidas
 score_left = 0
@@ -107,23 +107,26 @@ def increase_ball_speed():
     global ball_speed
     ball_speed = min(ball_speed + 0.5, max_ball_speed)  # Aumenta a velocidade e limita ao máximo
 
-# Função para verificar colisão com a raquete e ajustar o ângulo da bola
+# Função para corrigir colisão com a raquete e impedir colisão múltipla
 def ball_paddle_collision():
     global ball_dy, ball_dx, paddle_hits
-    if 817 <= ball_y <= 822  and player_x <= ball_x <= player_x + 62:
-        ball_dy *= -1
+    # Verifica se a bola colide com a raquete
+    if player_x <= ball_x <= player_x + paddle_width and ball_y + 10 >= 830:  # Corrigido para verificar a posição y corretamente
+        ball_dy *= -1  # Inverte a direção vertical da bola
         paddle_hits += 1
         hit_paddle.play()
 
-        # Ajuste a direção com base na posição onde a bola colide com a raquete
+        # Ajuste da direção horizontal da bola com base na posição onde a bola colide com a raquete
         hit_pos = ball_x - player_x
-        if hit_pos < 20:  # Esquerda da raquete
-            ball_dx = -abs(ball_dx)  # Mover para a esquerda
-        elif hit_pos > 40:  # Direita da raquete
-            ball_dx = abs(ball_dx)  # Mover para a direita
+        if hit_pos < paddle_width // 3:  # Se a bola atinge a esquerda da raquete
+            ball_dx = -abs(ball_dx)  # Direciona a bola para a esquerda
+        elif hit_pos > 2 * paddle_width // 3:  # Se a bola atinge a direita da raquete
+            ball_dx = abs(ball_dx)  # Direciona a bola para a direita
 
+        # Aumenta a velocidade da bola a cada 4 e 12 colisões com a raquete
         if paddle_hits == 4 or paddle_hits == 12:
             increase_ball_speed()
+
 
 first_top_collision = True  # Variável para verificar a primeira colisão com a parede de cima
 
@@ -136,7 +139,23 @@ hit_paddle = pygame.mixer.Sound('assets/ball_hit_paddle.wav')
 game_loop = True
 game_clock = pygame.time.Clock()
 
+# Função modificada para aumentar a pontuação com base na cor do bloco
+def update_score_by_block_color(color):
+    global score_left
+    if color == COLOR_YELLOW:
+        score_left += 1
+    elif color == COLOR_GREEN:
+        score_left += 3
+    elif color == COLOR_ORANGE:
+        score_left += 5
+    elif color == COLOR_RED:
+        score_left += 7
+
+# Variável para verificar se a bola está se movendo para baixo
+ball_moving_down = False
+
 while game_loop:
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game_loop = False
@@ -172,35 +191,75 @@ while game_loop:
     # Movimento do jogador (paddle)
     if player_move_left and player_x > 40:  # Limitando com a borda esquerda
         player_x -= 10
-    if player_move_right and player_x < 600:  # Limitando com a borda direita
+    if player_move_right and player_x < 500:  # Limitando com a borda direita
         player_x += 10
 
     # Colisão da bola com as paredes
-    if ball_x <= 40 or ball_x >= 640:
-        ball_dx *= -1
+    # Corrige colisão da bola com as paredes laterais
+
+    if ball_x <= 40:  # Colisão com a parede esquerda
+        ball_dx = abs(ball_dx)  # Garante que a bola sempre vai para a direita após colidir com a parede esquerda
         hit_wall.play()
-    if ball_y <= 20:
-        ball_dy *= -1
+
+    elif ball_x >= 560:  # Colisão com a parede direita
+        ball_dx = -abs(ball_dx)  # Garante que a bola sempre vai para a esquerda após colidir com a parede direita
+        hit_wall.play()
+
+    # Corrige colisão da bola com a parte superior
+    if ball_y <= 20:  # Colisão com o topo
+        ball_dy = abs(
+            ball_dy)  # Garante que a bola sempre vai para baixo após colidir com o topo
+        hit_wall.play()
+
         if first_top_collision:
-            paddle_width = 40  # Alterar tamanho da raquete
-            player_surface = pygame.Surface((paddle_width, paddle_height))  # Redesenhar a nova raquete
-            player_surface.fill(COLOR_BLUE)  # Preencher a nova raquete com a cor
-            first_top_collision = False  # Marcar que a colisão já ocorreu
-        hit_wall.play()
+            # Se for a primeira colisão, diminui o tamanho da raquete
+            paddle_width = 40  # Redefine o tamanho da raquete
+            player_surface = pygame.Surface(
+                (paddle_width, paddle_height))  # Redesenha a raquete
+            player_surface.fill(COLOR_BLUE)  # Preenche a raquete com a cor
+            first_top_collision = False  # Marca que a colisão já ocorreu
+
+    # Impede que a bola atinja blocos ao descer
+    if not ball_moving_down:  # Verifica se a bola está subindo
+        for block in blocks[:]:
+            if block.collidepoint(ball_x, ball_y):
+                index = blocks.index(block)
+                block_color = block_colors[index]
+                blocks.remove(block)
+                block_colors.pop(index)  # Remove a cor associada ao bloco
+
+                # Atualiza a pontuação com base na cor do bloco destruído
+                update_score_by_block_color(block_color)
+
+                # Se a bola está subindo, rebate, senão atravessa os blocos
+                if not ball_moving_down:
+                    ball_dy *= -1  # Rebate a bola apenas se estiver subindo
+                    hit_block.play()
 
     # Colisão da bola com o paddle
     ball_paddle_collision()
 
+    # Verifica se a bola está subindo ou descendo
+    if ball_dy > 0:
+        ball_moving_down = True
+    else:
+        ball_moving_down = False
 
-    # Colisão da bola com os blocos
+    # Colisão da bola com os blocos (ajustado para a bola atravessar blocos quando está descendo)
     for block in blocks[:]:
         if block.collidepoint(ball_x, ball_y):
-            hit_block.play()
             index = blocks.index(block)
+            block_color = block_colors[index]
             blocks.remove(block)
             block_colors.pop(index)  # Remove a cor associada ao bloco
-            ball_dy *= -1
-            score_left += 1  # Incrementa o placar da esquerda
+
+            # Atualiza a pontuação com base na cor do bloco destruído
+            update_score_by_block_color(block_color)
+
+            # Se a bola está subindo, rebate, senão atravessa os blocos
+            if not ball_moving_down:
+                ball_dy *= -1
+                hit_block.play()
 
     # Verifica se a bola caiu
     if ball_y > 1000:
