@@ -76,16 +76,16 @@ left_border = pygame.Rect(20, 0, 20, 850)  # left border
 right_border = pygame.Rect(560, 0, 20, 850)  # right border
 top_border = pygame.Rect(20, 0, 560, 20)  # top border
 
-# score and lives
+# score and attempts
 score_left = 0
 score_right = 0
-lives = 1
+attempts = 1
 paddle_hits = 0  # paddle collision counter
 
 # reset game function
 def reset_game():
     global ball_x, ball_y, ball_dx, ball_dy, score_left, score_right, blocks
-    global block_colors, lives, ball_speed, paddle_hits
+    global block_colors, attempts, ball_speed, paddle_hits
     ball_x = 340
     ball_y = 420
     ball_dx = 2.5
@@ -94,7 +94,7 @@ def reset_game():
     paddle_hits = 0
     score_left = 0
     score_right = 0
-    lives = 1
+    attempts = 1
     blocks.clear()
     block_colors.clear()
     for row in range(8):
@@ -257,8 +257,8 @@ while game_loop:
 
     # if ball falls off the bottom of the screen
     if ball_y > 850:
-        lives -= 1
-        if lives <= 0:
+        attempts += 1
+        if attempts >= 4:
             reset_game()
         else:
             ball_x = 340
@@ -277,7 +277,7 @@ while game_loop:
                                         True, COLOR_WHITE)
     screen.blit(score_text_left, score_text_rect_left)
 
-    score_text_right = score_font.render(str(score_right),
+    score_text_right = score_font.render(str(attempts),
                                          True, COLOR_WHITE)
     screen.blit(score_text_right, score_text_rect_right)
 
