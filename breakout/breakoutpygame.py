@@ -257,7 +257,7 @@ while game_loop:
             ball_speed = initial_ball_speed
             paddle_hits = 0
 
-    # draw ball and paddle
+    # draw ball and the paddle
     screen.blit(ball, (ball_x, ball_y))
     screen.blit(player_surface, (player_x, 830))
 
