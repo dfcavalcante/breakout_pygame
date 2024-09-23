@@ -92,7 +92,7 @@ in_safe_mode = False
 
 # reset game function
 def reset_game():
-    global ball_x, ball_y, ball_dx, ball_dy, score_left, lives, ball_speed, paddle_hits, in_safe_mode, paddle_width, player_surface
+    global ball_x, ball_y, ball_dx, ball_dy, score_left, lives, ball_speed, paddle_hits, in_safe_mode, paddle_width, player_surface, player_x
     ball_x = 340
     ball_y = 420
     ball_dx = 2.5
@@ -105,6 +105,7 @@ def reset_game():
     paddle_width = initial_paddle_width
     player_surface = pygame.Surface((paddle_width, paddle_height))
     player_surface.fill(COLOR_BLUE)
+    player_x = (600 - paddle_width) // 2  # centralize paddle
     create_blocks()
 
 # increase ball speed function
@@ -157,9 +158,9 @@ while game_loop:
             game_loop = False
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_LEFT and not in_safe_mode:
                 player_move_left = True
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT and not in_safe_mode:
                 player_move_right = True
             if event.key == pygame.K_SPACE and in_safe_mode:
                 reset_game()  # Exit safe mode and reset game
@@ -186,11 +187,12 @@ while game_loop:
     ball_x += ball_dx * ball_speed
     ball_y += ball_dy * ball_speed
 
-    # player movement
-    if player_move_left and player_x > 40:
-        player_x -= 10
-    if player_move_right and player_x < 500:
-        player_x += 10
+    # player movement (only if not in safe mode)
+    if not in_safe_mode:
+        if player_move_left and player_x > 40:
+            player_x -= 10
+        if player_move_right and player_x < 500:
+            player_x += 10
 
     # ball-wall collision
     if ball_x <= 40:
@@ -207,7 +209,8 @@ while game_loop:
 
     # Safe mode mechanics
     if in_safe_mode:
-        paddle_width = 540  # Extend paddle across the entire screen
+        paddle_width = 550  # Extend paddle across the entire screen
+        player_x = 30  # Center the paddle across the entire width
         player_surface = pygame.Surface((paddle_width, paddle_height))
         player_surface.fill(COLOR_BLUE)
 
@@ -237,6 +240,7 @@ while game_loop:
             paddle_width = 540
             player_surface = pygame.Surface((paddle_width, paddle_height))
             player_surface.fill(COLOR_BLUE)
+            player_x = 30  # Center the paddle
             create_blocks()  # Restore all blocks
             ball_speed = initial_ball_speed  # Reset ball speed
             ball_x = 340  # Reset ball position
@@ -258,7 +262,7 @@ while game_loop:
     screen.blit(score_text_left, score_text_rect_left)
 
     lives_text = lives_font.render(f"{lives}", True, COLOR_WHITE)
-    screen.blit(lives_text, (250, 30))
+    screen.blit(lives_text, (470, 30))
 
     pygame.display.update()
     game_clock.tick(60)
