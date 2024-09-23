@@ -56,13 +56,17 @@ block_colors = []
 # row colors (2 rows per color)
 row_colors = [COLOR_RED, COLOR_RED, COLOR_ORANGE, COLOR_ORANGE, COLOR_GREEN,
               COLOR_GREEN, COLOR_YELLOW, COLOR_YELLOW]
+# borders (sides and top)
+left_border = pygame.Rect(0, 0, 10, 850)  # Ajustar para 10px de largura
+right_border = pygame.Rect(size[0] - 10, 0, 10, 850)  # Ajustar para 10px na direita
+top_border = pygame.Rect(20, 0, 560, 20)  # top border
 
 # spacing and central positioning
 num_cols = 14  # more columns for the design
 block_spacing_x = 3
 block_spacing_y = 3
 total_block_width = num_cols * block_width + (num_cols - 1) * block_spacing_x
-start_x = (600 - total_block_width) // 2
+start_x = left_border.width + block_spacing_x
 
 # create block grid (14 columns, 8 rows) and assign fixed colors
 def create_blocks():
@@ -76,11 +80,6 @@ def create_blocks():
             block_colors.append(row_colors[row])  # assign color for each block
 
 create_blocks()
-
-# borders (sides and top)
-left_border = pygame.Rect(20, 0, 20, 850)  # left border
-right_border = pygame.Rect(560, 0, 20, 850)  # right border
-top_border = pygame.Rect(20, 0, 560, 20)  # top border
 
 # score and lives
 score_left = 0
@@ -130,9 +129,9 @@ def ball_paddle_collision():
             increase_ball_speed()
 
 # sound effects (you need to ensure the files exist in your project)
-hit_wall = pygame.mixer.Sound('breakout/assets/ball_hit_wall.wav')
-hit_block = pygame.mixer.Sound('breakout/assets/ball_hit_block.wav')
-hit_paddle = pygame.mixer.Sound('breakout/assets/ball_hit_paddle.wav')
+hit_wall = pygame.mixer.Sound('assets/ball_hit_wall.wav')
+hit_block = pygame.mixer.Sound('assets/ball_hit_block.wav')
+hit_paddle = pygame.mixer.Sound('assets/ball_hit_paddle.wav')
 
 # game loop
 game_loop = True
@@ -189,17 +188,18 @@ while game_loop:
 
     # player movement (only if not in safe mode)
     if not in_safe_mode:
-        if player_move_left and player_x > 40:
+        if player_move_left and player_x > left_border.width:
             player_x -= 10
-        if player_move_right and player_x < 500:
+        if (player_move_right and player_x < size[0]
+                - paddle_width - right_border.width):
             player_x += 10
 
     # ball-wall collision
-    if ball_x <= 40:
-        ball_dx = abs(ball_dx)
+    if ball_x <= left_border.width:
+        ball_dx = abs(ball_dx)  # Inverte a direção horizontal
         hit_wall.play()
 
-    elif ball_x >= 560:
+    elif ball_x >= size[0] - right_border.width - ball.get_width():
         ball_dx = -abs(ball_dx)
         hit_wall.play()
 
@@ -209,9 +209,10 @@ while game_loop:
 
     # Safe mode mechanics
     if in_safe_mode:
-        paddle_width = 550  # Extend paddle across the entire screen
-        player_x = 30  # Center the paddle across the entire width
-        player_surface = pygame.Surface((paddle_width, paddle_height))
+        paddle_width = size[0] - left_border.width - right_border.width
+        player_x = left_border.width
+        player_surface = pygame.Surface((paddle_width,
+                                         paddle_height))
         player_surface.fill(COLOR_BLUE)
 
     # ball-paddle collision
@@ -220,30 +221,35 @@ while game_loop:
     # check if ball is moving down
     ball_moving_down = ball_dy > 0
 
-    # ball-block collision
+     #ball-block collision (removido)
     if not in_safe_mode:  # Only destroy blocks if not in safe mode
         for block in blocks[:]:
             if block.collidepoint(ball_x, ball_y):
-                index = blocks.index(block)
-                block_color = block_colors[index]
-                blocks.remove(block)
-                block_colors.pop(index)
-                update_score_by_block_color(block_color)
-                ball_dy *= -1
-                hit_block.play()
+                if not ball_moving_down:  # Colisão apenas se a bola estiver subindo
+                    index = blocks.index(block)
+                    block_color = block_colors[index]
+                    blocks.remove(block)  # Remover bloco
+                    block_colors.pop(index)  # Remover cor do bloco
+                    update_score_by_block_color(
+                        block_color)  # Atualizar pontuação
+                    ball_dy *= -1  # Inverter a direção da bola
+                    hit_block.play()  # Tocar o som de colisão com o bloco
+
+
+
 
     # ball falls off bottom of screen
     if ball_y > 850:
         lives -= 1
         if lives <= 0 and not in_safe_mode:
-            in_safe_mode = True  # Activate safe mode
-            paddle_width = 540
+            in_safe_mode = True
+            paddle_width = size[0] - left_border.width - right_border.width
             player_surface = pygame.Surface((paddle_width, paddle_height))
             player_surface.fill(COLOR_BLUE)
-            player_x = 30  # Center the paddle
-            create_blocks()  # Restore all blocks
-            ball_speed = initial_ball_speed  # Reset ball speed
-            ball_x = 340  # Reset ball position
+            player_x = left_border.width
+            create_blocks()
+            ball_speed = initial_ball_speed
+            ball_x = 340
             ball_y = 420
         elif not in_safe_mode:
             ball_x = 340
